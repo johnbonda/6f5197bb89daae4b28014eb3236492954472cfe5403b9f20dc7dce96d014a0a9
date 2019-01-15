@@ -129,7 +129,10 @@ app.route.post('/userlogin', async function (req, cb) {
      console.log("token: " + options.condition.token);
      var result = await app.model.Pendingemp.findOne(options);
 
-     if(!result) return "Invalid token";
+     if(!result) return {
+         message: "Invalid token",
+         isSuccess: false
+     }
 
      var mapEntryObj = {
         address: req.query.walletAddress,
@@ -140,12 +143,14 @@ app.route.post('/userlogin', async function (req, cb) {
      delete result.token;
 
      result.walletAddress = req.query.walletAddress;
-     //result.empID = app.autoID.increment('employee_max_empID');
+     //result.empid = app.autoID.increment('employee_max_empid');
 
      app.sdb.create("employee", result);
 
      app.sdb.del('pendingemp', {email: result.email});
-     return "success";
+     return {
+         isSuccess: true
+     };
  });
 
  app.route.post('/getPayslips', async function(req, cb){
@@ -187,7 +192,7 @@ app.route.post('/payslips/employee/issued', async function(req, cb){
         condition: {
             walletAddress: req.query.walletAddress
         }, 
-        fields: ['empID']
+        fields: ['empid']
     });
     if(!employee) return {
         message: "Address not associated with any employee",
@@ -196,7 +201,7 @@ app.route.post('/payslips/employee/issued', async function(req, cb){
 
     var result = await app.model.Issue.findAll({
         condition: {
-            empid: employee.empID,
+            empid: employee.empid,
             status: 'issued'
         },
         sort: {
@@ -236,7 +241,7 @@ app.route.post('/payslips/employee/issued/search', async function(req, cb){
         condition: {
             walletAddress: req.query.walletAddress
         }, 
-        fields: ['empID']
+        fields: ['empid']
     });
     if(!employee) return {
         message: "Address not associated with any employee",
@@ -247,7 +252,7 @@ app.route.post('/payslips/employee/issued/search', async function(req, cb){
         let result = [];
         let payslip = await app.model.Payslip.findOne({
             condition: {
-                empid: employee.empID,
+                empid: employee.empid,
                 month: req.query.month,
                 year: req.query.year
             },
@@ -292,7 +297,7 @@ app.route.post('/payslips/employee/issued/search', async function(req, cb){
         let result = [];
         let payslips = await app.model.Payslip.findAll({
             condition: {
-                empid: employee.empID,
+                empid: employee.empid,
                 year: req.query.year
             },
             fields: ['pid', 'month', 'year']
@@ -409,7 +414,7 @@ app.route.post('/employeeStatistic', async function(req, cb){
     }
     var issues = await app.model.Issue.findAll({
         condition: {
-            empid: employee.empID
+            empid: employee.empid
         }
     });
 })

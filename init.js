@@ -26,6 +26,11 @@ app.sdb.create("count",{
   iid:0,
   empid:0
 });
+  app.sdb.create("category", {
+    name: "testing",
+    deleted: "0"
+  })
+
 
 
   app.events.on('newBlock', (block) => {

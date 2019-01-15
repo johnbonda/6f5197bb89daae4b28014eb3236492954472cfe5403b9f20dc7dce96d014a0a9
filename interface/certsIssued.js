@@ -25,7 +25,7 @@ app.route.post('/totalEmployee', async function(req, cb)
 app.route.post('/employee/details',async function(req,cb){
     logger.info("Entered /employee/details");
 var res=await app.model.Employee.findAll({
-    fields:['empID','name','designation'],
+    fields:['empid','name','designation'],
     limit: req.query.limit,
     offset: req.query.offset,
 })
@@ -79,7 +79,7 @@ app.route.post('/getEmployees', async function(req, cb)
 app.route.post('/getEmployeeById', async function(req, cb)
 { 
     logger.info("Entered /getEmployeeById API");
-    return await app.model.Employee.findOne( {condition : { empID : req.query.id }} );
+    return await app.model.Employee.findOne( {condition : { empid : req.query.id }} );
 })
 
 app.route.post('/sortTesting', async function(req, cb){

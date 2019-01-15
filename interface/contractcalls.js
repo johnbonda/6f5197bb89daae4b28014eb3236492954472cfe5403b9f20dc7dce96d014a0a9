@@ -20,9 +20,6 @@ app.route.post("/issueTransactionCall", async function(req, res){
         message: "Invalid Payslip",
         isSuccess: false
     }
-    var authorizers = await app.model.Authorizer.findAll({
-        fields: ['aid']
-    });
 
     var issue = await app.model.Issue.findOne({
         condition: {
@@ -35,6 +32,11 @@ app.route.post("/issueTransactionCall", async function(req, res){
         isSuccess: false
     }
 
+    if(issue.status === 'pending') return {
+        message: "Payslip not Authorized",
+        isSuccess: false
+    }
+
     if(issue.iid !== req.query.iid) return {
         message: "Invalid issuer",
         isSuccess: false
@@ -42,7 +44,7 @@ app.route.post("/issueTransactionCall", async function(req, res){
     
     var employee = await app.model.Employee.findOne({
         condition: {
-            empID: payslip.empid
+            empid: payslip.empid
         }
     });
     if(!employee) return {

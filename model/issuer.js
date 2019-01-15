@@ -28,6 +28,11 @@ module.exports = {
             length: 255
         },
         {
+            name: 'category',
+            type: 'String',
+            length: 255
+        },
+        {
             name: 'deleted',
             type: 'String',
             length: 255,
