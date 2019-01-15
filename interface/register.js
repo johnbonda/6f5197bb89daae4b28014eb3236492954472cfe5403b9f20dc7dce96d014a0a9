@@ -227,7 +227,8 @@ app.route.post('/payslip/initialIssue',async function(req,cb){
    if(!employee) return {
        message: "Invalid Employee",
        isSuccess: false
-   }
+    }
+    var identity = JSON.parse(Buffer.from(employee.identity, 'base64').toString());
    
     var timestamp = new Date().getTime();
      var payslip={
@@ -241,9 +242,9 @@ app.route.post('/payslip/initialIssue',async function(req,cb){
         designation:employee.designation,
         bank:employee.bank,
         accountNumber:employee.accountNumber,
-        identity:employee.identity,
-        earnings: Buffer.from(JSON.stringify(req.query.earnings)).toString('base64'),
-        deductions: Buffer.from(JSON.stringify(req.query.deductions)).toString('base64'),
+        identity: identity,
+        earnings: req.query.earnings,
+        deductions: req.query.deductions,
         grossSalary:req.query.grossSalary,
         totalDeductions:req.query.totalDeductions,
         netSalary:req.query.netSalary,
@@ -290,12 +291,11 @@ app.route.post('/payslip/initialIssue',async function(req,cb){
 
     console.log("Generated Payslip: " + JSON.stringify(payslip));
 
-    app.sdb.create("payslip", payslip);
     var hash = util.getHash(JSON.stringify(payslip));
     var sign = util.getSignatureByHash(hash, secret);
     var base64hash = hash.toString('base64');
     var base64sign = sign.toString('base64');
-
+    
     var issue = {
         pid:payslip.pid,
         iid:issuerid,
@@ -316,9 +316,14 @@ app.route.post('/payslip/initialIssue',async function(req,cb){
     if(!numberOfAuths){
         issue.status = "authorized"
     }
-
+    
+    payslip.earnings = Buffer.from(JSON.stringify(req.query.earnings)).toString('base64');
+    payslip.deductions = Buffer.from(JSON.stringify(req.query.deductions)).toString('base64');
+    payslip.identity = employee.identity;
+    
+    app.sdb.create("payslip", payslip);
     app.sdb.create("issue", issue);
-
+    
     app.autoID.increment('payslip_max_pid');
     return {
         message: "Payslip initiated",
@@ -614,7 +619,14 @@ app.route.post("/registerEmployee", async function(req, cb){
     var designation = req.query.designation;
     var bank = req.query.bank;
     var accountNumber = req.query.accountNumber;
-    var identity = Buffer.from(JSON.stringify(req.query.identity)).toString('base64');
+    try{
+        var identity = Buffer.from(JSON.stringify(req.query.identity)).toString('base64');
+    }catch(err){
+        return {
+            message: "Provide proper identity",
+            isSuccess: false
+        }
+    }
     var salary = req.query.salary;
     var dappid = req.query.dappid;
     var token = req.query.token;
@@ -777,7 +789,7 @@ app.route.post("/registerEmployee", async function(req, cb){
             
         else{
             logger.info("Sent email to the employee to share wallet address");
-            var check = await app.model.PendingEmp.findOne({
+            var check = await app.model.Pendingemp.findOne({
                 condition: {
                     email: email
                 }
@@ -812,6 +824,7 @@ app.route.post("/registerEmployee", async function(req, cb){
             mailCall.call("POST", "", mailBody, 0);
 
             return {
+                token: jwtToken,
                 message: "Awaiting wallet address",
                 isSuccess: true
             }
@@ -1238,7 +1251,7 @@ app.route.post('/registerUser/', async function(req, cb){
                 fields: ['pid']
             });
             for(i in authorizedPayslips){
-                app.sdb.update('issue', {status: 'pending'}, {pid: authorizedPayslips.pid});
+                app.sdb.update('issue', {status: 'pending'}, {pid: authorizedPayslips[i].pid});
             }
         }
         return {
