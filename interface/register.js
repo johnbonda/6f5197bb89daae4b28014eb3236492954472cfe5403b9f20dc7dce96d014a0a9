@@ -502,6 +502,7 @@ app.route.post('/authorizer/authorize',async function(req,cb){
             aid:authid,
             sign: base64sign,
             publickey: publickey,
+            timestampp: new Date().getTime().toString(),
             deleted: '0'
         });
 

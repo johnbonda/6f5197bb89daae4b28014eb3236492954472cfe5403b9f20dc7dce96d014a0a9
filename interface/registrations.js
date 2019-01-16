@@ -154,39 +154,6 @@ app.route.post('/userlogin', async function (req, cb) {
      };
  });
 
- app.route.post('/getPayslips', async function(req, cb){
-     logger.info("Entered /getPayslips API");
-    var address = req.query.address;
-    var options = {};
-    var response = await DappCall.call('GET', '', options, req.query.dappid);
-    if(!response) return "No response";
-    var transactionsArray = response.transactions;
-    console.log(transactionsArray);
-    var result = [];
-    function parseAddress(str){
-        var array = str.split(",");
-        var arr = array[0].split("\"");
-        var ar = array[1].split("\"");
-        var address = arr[1];
-        var id = ar[1];
-        console.log("Parsed address: " + address);
-        console.log("Parsed id: " + id);
-        return {
-            address: address,
-            id: id
-        };
-    }
-    for(i in transactionsArray){
-        var obj = parseAddress(transactionsArray[i].args);
-        console.log("The parsed object" + JSON.stringify(obj));
-        if(address === obj.address){
-            transactionsArray[i].certType = "paylsip";
-            result.push(transactionsArray[i]);
-        }
-    }
-    return result;
-});
-
 app.route.post('/payslips/employee/issued', async function(req, cb){
     logger.info("Entered /payslips/employee/issued API");
     var employee = await app.model.Employee.findOne({
@@ -408,7 +375,7 @@ app.route.post('/payslip/returnHash', async function(req, cb){
     }
 });
 
-app.route.post('/employeeStatistic', async function(req, cb){
+app.route.post('/employee/payslips/statistic', async function(req, cb){
     var employee = await app.model.Employee.findOne({
         condition: {
             walletAddress: req.query.walletAddress
@@ -418,9 +385,125 @@ app.route.post('/employeeStatistic', async function(req, cb){
         message: "Employee not found",
         isSuccess: false
     }
+    var count = await app.model.Issue.count({
+        empid: employee.empid
+    });
     var issues = await app.model.Issue.findAll({
         condition: {
             empid: employee.empid
+        },
+        sort: {
+            timestampp: -1
+        },
+        limit: req.query.limit,
+        offset: req.query.offset
+    });
+    for(i in issues){
+        var payslip = await app.model.Payslip.findOne({
+            condition: {
+                pid: issues[i].pid
+            },
+            fields: ['pid', 'month', 'year']
+        });
+        var issuer = await app.model.Issuer.findOne({
+            condition: {
+                iid: issues[i].iid
+            },
+            fields: ['email']
+        })
+        issues[i].month = payslip.month;
+        issues[i].year = payslip.year;
+        issues[i].issuedBy = issuer.email;
+    }
+    return {
+        issuedPayslips: issues,
+        total: count,
+        isSuccess: true
+    }
+});
+
+app.route.post('/payslip/statistic', async function(req, cb){
+    var issue = await app.model.Issue.findOne({
+        condition: {
+            pid: req.query.pid,
         }
     });
+    if(!issue) return {
+        message: "Invalid payslip",
+        isSuccess: false
+    }
+
+    var payslip = await app.model.Payslip.findOne({
+        condition: {
+            pid: req.query.pid
+        }
+    });
+    var issuer = await app.model.Issue.findOne({
+        condition: {
+            iid: issue.iid
+        }
+    });
+
+    if(issuer.status === 'rejected'){
+        var rejected = await app.model.Rejected.findOne({
+            pid: req.query.pid
+        });
+        var authorizer = await app.model.Authorizer.findOne({
+            aid: rejected.aid
+        });
+        return {
+            rejectedBy: authorizer,
+            issuedBy: issuer,
+            reason: rejected.reason
+        }
+    }
+    
+    var authorizerCount = await app.model.Authorizer.count({
+        category: issue.category,
+        deleted: '0'
+    });
+    var signatures = await app.model.Cs.findAll({
+        condition: {
+            pid: req.query.pid
+        }
+    });
+    for(i in signatures){
+        var authorizer = await app.model.Authorizer.findOne({
+            condition: {
+                aid: signatures[i].aid
+            },
+            fields: ['email']
+        });
+        signatures[i].email = authorizer.email
+    }
+
+    return {
+        issue: issue,
+        payslip: payslip,
+        issuer: issuer,
+        totalAuthorizers: authorizerCount,
+        signedAuthorizersCount: issue.count,
+        signatures: signatures,
+        isSuccess: true
+    }  
 })
+
+app.route.post('/authorizer/rejecteds', async function(req, cb){
+    var authorizerExists = await app.model.Authorizer.exists({
+        aid: req.query.aid
+    });
+    if(!authorizerExists) return {
+        message: "Invalid Authorizer",
+        isSuccess: false
+    }
+    var rejecteds = await app.model.Rejected.findAll({
+        condition: {
+            aid: req.query.aid
+        }
+    });
+    return {
+        rejectedDetails: rejecteds,
+        isSuccess: true
+    }
+});
+
