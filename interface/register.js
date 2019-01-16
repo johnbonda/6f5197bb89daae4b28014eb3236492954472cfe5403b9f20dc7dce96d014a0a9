@@ -21,8 +21,13 @@ app.route.post('/employees', async function(req, cb){
 
     logger.info("Entered /employees API");
 
-    var total = await app.model.Employee.count({});
+    var total = await app.model.Employee.count({
+        deleted: '0'
+    });
     var options = {
+        condition: {
+            deleted: '0'
+        },
         fields: ['empid', 'name', 'designation'],
         limit: req.query.limit,
         offset: req.query.offset
@@ -45,13 +50,23 @@ app.route.post('/employeeData', async function(req,cb){
 
     var options = {
         condition: {
-            empid: req.query.empid
+            empid: req.query.empid,
+            deleted: '0'
         }
     }
 
     var result = await app.model.Employee.findOne(options);
+    if(!result) return {
+        message: "Employee not found",
+        isSuccess: false
+    }
 
-    return result;
+    result.identity = JSON.parse(Buffer.from(result.identity, 'base64').toString());
+
+    return {
+        employee: result,
+        isSuccess: true
+    };
 })
 
 async function verifyPayslip(req, cb){
@@ -108,7 +123,7 @@ async function verifyPayslip(req, cb){
         });
         if(!authorizer) {
             authorizer = {
-                aid: "Delected Authorizer"
+                aid: "Invalid Authorizer"
             }
         }
         if(!util.Verify(hash, new Buffer(signatures[i].sign, 'base64'), new Buffer(signatures[i].publickey, 'hex'))) return {
@@ -117,6 +132,11 @@ async function verifyPayslip(req, cb){
         }
     }
 
+    var transaction = await app.model.Transaction.findOne({
+        id: result.transactionId
+    });
+    delete result.transactionId;
+    result.transaction = transaction;
     result.issuedBy = issuer.email;
     result.isSuccess = true;
     return result;
@@ -383,6 +403,10 @@ app.route.post('/payslip/getPayslip', async function(req, cb){
         isSuccess: false,
         message: "Invalid Payslip ID"
     }
+    payslip.identity = JSON.parse(Buffer.from(payslip.identity, 'base64').toString());
+    payslip.earnings = JSON.parse(Buffer.from(payslip.earnings, 'base64').toString());
+    payslip.deductions = JSON.parse(Buffer.from(payslip.deductions, 'base64').toString());
+
     return {
         isSuccess: true,
         result: payslip
@@ -399,7 +423,8 @@ app.route.post('/authorizer/authorize',async function(req,cb){
         var publickey = util.getPublicKey(secret);
         var checkauth = await app.model.Authorizer.findOne({
             condition:{
-                aid: authid
+                aid: authid,
+                deleted: '0'
             }
         });
         if(!checkauth) return {

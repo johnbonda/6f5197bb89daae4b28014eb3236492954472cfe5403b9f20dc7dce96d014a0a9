@@ -51,16 +51,16 @@ app.route.post("/issueTransactionCall", async function(req, res){
         message: "Invalid employee",
         isSuccess: false
     }
+
+    payslip.identity = JSON.parse(Buffer.from(payslip.identity, 'base64').toString());
+    payslip.earnings = JSON.parse(Buffer.from(payslip.earnings, 'base64').toString());
+    payslip.deductions = JSON.parse(Buffer.from(payslip.deductions, 'base64').toString());
     
     // if(issue.status !== "authorized") return "Payslip not authorized yet";
 
-    var args = "[\"" + employee.walletAddress + "\"," + "\"payslip\"";
-    for(i in payslip){
-        args += ",\"" + payslip[i] + "\"";
-    }
-    args += "]";
+    var array = [employee.walletAddress, "payslip", payslip];
 
-    transactionParams.args = args;
+    transactionParams.args = JSON.stringify(array);
     transactionParams.type = 1003;
     transactionParams.fee = req.query.fee;
     transactionParams.secret = req.query.secret;

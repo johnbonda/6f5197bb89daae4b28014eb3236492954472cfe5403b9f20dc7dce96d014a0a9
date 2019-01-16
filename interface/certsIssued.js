@@ -13,7 +13,9 @@ app.route.post('/totalCertsIssued', async function(req, cb)
 app.route.post('/totalEmployee', async function(req, cb)
 { 
     logger.info("Entered /totalEmployee API");
-   var totalemp= await app.model.Employee.count({});
+   var totalemp= await app.model.Employee.count({
+       deleted: '0'
+   });
     return {
          totalEmployee: totalemp,
          isSuccess: true
@@ -25,6 +27,9 @@ app.route.post('/totalEmployee', async function(req, cb)
 app.route.post('/employee/details',async function(req,cb){
     logger.info("Entered /employee/details");
 var res=await app.model.Employee.findAll({
+    condition: {
+        deleted: '0'
+    },
     fields:['empid','name','designation'],
     limit: req.query.limit,
     offset: req.query.offset,
@@ -65,8 +70,13 @@ app.route.post('/recentIssued', async function(req, cb)
 app.route.post('/getEmployees', async function(req, cb)
 { 
     logger.info("Entered /getEmployees API");
-    var total = await app.model.Employee.count({});
+    var total = await app.model.Employee.count({
+        deleted: '0'
+    });
     var employees = await app.model.Employee.findAll({
+        condition: {
+            deleted: '0'
+        },
         limit: req.query.limit,
         offset: req.query.offset
     });
@@ -79,32 +89,22 @@ app.route.post('/getEmployees', async function(req, cb)
 app.route.post('/getEmployeeById', async function(req, cb)
 { 
     logger.info("Entered /getEmployeeById API");
-    return await app.model.Employee.findOne( {condition : { empid : req.query.id }} );
-})
-
-app.route.post('/sortTesting', async function(req, cb){
-    logger.error("Entered /sortTesting API - Someone is calling this API");
-    var result = await app.model.Authorizer.findAll({
-        condition: {
-            publickey: "-"
-        },
-        sort: {
-            aid: -1
-        },
-        fields: ['aid'],
-        limit: 6
+    var employee = await app.model.Employee.findOne({
+        condition : { 
+            empid : req.query.id 
+        }
     });
-    return result;
+    if(!employee) return {
+        message: "Employee not found",
+        isSuccess: false
+    }
+    employee.identity = JSON.parse(Buffer.from(employee.identity, 'base64').toString());
 })
 
 app.route.post('/getPendingAuthorizationCount', async function(req, cb){
     logger.info("Entered /getPendingAuthorizationCount API");
-    var authCount = await app.model.Authorizer.count({});
     var result = await app.model.Issue.count({
         status: "pending",
-        count: {
-            $lt: authCount
-        }
     });
     return {
         totalUnauthorizedCertificates: result,
@@ -114,19 +114,37 @@ app.route.post('/getPendingAuthorizationCount', async function(req, cb){
 
 app.route.post('/employee/id/exists', async function(req, cb){
     logger.info("Entered /employee/id/exists API");
-    var exists = false;
-    var condition = {};
-    condition[req.query.by] = req.query.text;
-    try{
-        exists = await app.model.Employee.exists(condition);
-    }catch(err){
-        return {
-            message: "Invalid 'by' input",
-            isSuccess: false
+    var fields = ['empID', 'name', 'email'];
+    for(i in fields){
+        let condition = {};
+        condition[fields[i]] = req.query.text;
+        let employee = await app.model.Employee.findOne({
+            condition: condition
+        });
+        if(employee){
+            employee.identity = JSON.parse(Buffer.from(employee.identity, 'base64').toString()); 
+            return {
+                employee: employee,
+                isSuccess: true,
+                foundWith: fields[i],
+                status: "employee"
+            }
+        }
+        let pendingEmp = await app.model.Pendingemp.findOne({
+            condition: condition
+        });
+        if(pendingEmp){
+            pendingEmp.identity = JSON.parse(Buffer.from(pendingEmp.identity, 'base64').toString()); 
+            return {
+                employee: pendingEmp,
+                isSuccess: true,
+                foundWith: fields[i],
+                status: "pending employee"
+            }
         }
     }
     return {
-        exists: exists,
-        isSuccess: true
-    };
-})
+        isSuccess: false, 
+        message: "Not found in " + JSON.stringify(fields)
+    }
+});

@@ -223,6 +223,11 @@ app.route.post('/payslips/employee/issued', async function(req, cb){
                 iid: result[i].iid
             }
         });
+        var transaction = await app.model.Transaction.findOne({
+            id: result[i].transactionId
+        });
+        delete result[i].transactionId;
+        result[i].transaction = transaction;
         result[i].issuedBy = issuer.email;
         result[i].month = payslip.month;
         result[i].year = payslip.year;
