@@ -483,6 +483,10 @@ app.route.post('/authorizer/authorize',async function(req,cb){
 
         console.log("Queried Payslip: " + JSON.stringify(payslip));
 
+        payslip.identity = JSON.parse(Buffer.from(payslip.identity, 'base64').toString());
+        payslip.earnings = JSON.parse(Buffer.from(payslip.earnings, 'base64').toString());
+        payslip.deductions = JSON.parse(Buffer.from(payslip.deductions, 'base64').toString());
+
         var hash = util.getHash(JSON.stringify(payslip));
         var base64hash = hash.toString('base64');
         console.log("issue.hash: " + issue.hash);
@@ -494,7 +498,8 @@ app.route.post('/authorizer/authorize',async function(req,cb){
         var base64sign = (util.getSignatureByHash(hash, secret)).toString('base64');
         
         var authCount = await app.model.Authorizer.count({
-            category: checkauth.category
+            category: checkauth.category,
+            deleted: '0'
         });
 
         app.sdb.create('cs', {
@@ -1162,7 +1167,8 @@ app.route.post('/registerUser/', async function(req, cb){
         }
 
         let categoryCheck = await app.model.Category.exists({
-            name: category
+            name: category,
+            deleted: '0'
         });
         if(!categoryCheck) return {
             message: "Invalid category",
@@ -1283,5 +1289,4 @@ app.route.post('/registerUser/', async function(req, cb){
         return {
             isSuccess: true
         }
-
 });

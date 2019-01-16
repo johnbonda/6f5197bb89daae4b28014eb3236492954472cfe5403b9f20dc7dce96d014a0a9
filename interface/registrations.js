@@ -477,7 +477,7 @@ app.route.post('/payslip/statistic', async function(req, cb){
         signatures[i].email = authorizer.email
     }
 
-    return {
+    var result = {
         issue: issue,
         payslip: payslip,
         issuer: issuer,
@@ -485,7 +485,18 @@ app.route.post('/payslip/statistic', async function(req, cb){
         signedAuthorizersCount: issue.count,
         signatures: signatures,
         isSuccess: true
-    }  
+    };
+
+    if(issue.status === 'issued'){
+        var transaction = await app.model.Transaction.findOne({
+            condition: {
+                id: issue.transactionId
+            }
+        });
+        result.transaction = transaction;
+    }
+
+    return result;
 })
 
 app.route.post('/authorizer/rejecteds', async function(req, cb){

@@ -152,12 +152,17 @@ app.route.post('/authorizers/remove', async function(req, cb){
     });
 
     var countOfAuths = await app.model.Authorizer.count({
-        category: check.category
+        category: check.category,
+        deleted: '0'
     });
 
     for(i in pendingIssues){
-        if(pendingIssues[i].count === countOfAuths - 1) app.sdb.update('issue', {status: 'authorized'}, {pid: pendingIssues[i].pid});
-        else app.sdb.update('issue', {count: pendingIssues[i].count - 1}, {pid: pendingIssues[i].pid});
+        var signed = await app.model.Cs.exists({
+            aid: req.query.aid,
+            pid: pendingIssues[i].pid
+        })
+        if(signed) app.sdb.update('issue', {count: pendingIssues[i].count - 1}, {pid: pendingIssues[i].pid});
+        else if(pendingIssues[i].count === countOfAuths - 1) app.sdb.update('issue', {status: 'authorized'}, {pid: pendingIssues[i].pid})
     }
 
     app.sdb.update('authorizer', {deleted: '1'}, {aid: check.aid});
@@ -198,6 +203,39 @@ app.route.post('/issuers/remove', async function(req, cb){
     return {
         isSuccess: true
     };
+});
+
+app.route.post('/category/add', async function(req, cb){
+    var exists = await app.model.Category.exists({
+        name: req.query.name,
+        deleted: '0'
+    });
+    if(exists) return {
+        message: "The provided category already exists",
+        isSuccess: false
+    }
+    app.sdb.create('category', {
+        name: req.query.name,
+        deleted: '0'
+    })
+    return {
+        isSuccess: true
+    }
+});
+
+app.route.post('/category/remove', async function(req, cb){
+    var exists = await app.model.Category.exists({
+        name: req.query.name,
+        deleted: '0'
+    });
+    if(!exists) return {
+        message: "The provided category does not exist",
+        isSuccess: false
+    }
+    app.sdb.update('category', {deleted: '1'}, {name: req.query.name});
+    return {
+        isSuccess: true
+    }
 });
 
 // app.route.post('/payslips/pendingsigns', async function(req, cb){

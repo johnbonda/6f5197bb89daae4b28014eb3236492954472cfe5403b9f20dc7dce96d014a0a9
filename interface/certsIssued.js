@@ -148,3 +148,19 @@ app.route.post('/employee/id/exists', async function(req, cb){
         message: "Not found in " + JSON.stringify(fields)
     }
 });
+
+app.route.post('/getCategories', async function(req, cb){
+    var categories = await app.model.Category.findAll({
+        condition: {
+            deleted: '0'
+        },
+        fields: ['name']
+    });
+    var array = [];
+    for(i in categories){
+        array.push(categories[i].name)
+    }
+    return {
+        categories: array
+    }
+})
