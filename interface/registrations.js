@@ -438,13 +438,13 @@ app.route.post('/payslip/statistic', async function(req, cb){
             pid: req.query.pid
         }
     });
-    var issuer = await app.model.Issue.findOne({
+    var issuer = await app.model.Issuer.findOne({
         condition: {
             iid: issue.iid
         }
     });
 
-    if(issuer.status === 'rejected'){
+    if(issue.status === 'rejected'){
         var rejected = await app.model.Rejected.findOne({
             pid: req.query.pid
         });

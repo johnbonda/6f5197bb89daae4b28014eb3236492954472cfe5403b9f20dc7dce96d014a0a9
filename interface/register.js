@@ -415,6 +415,7 @@ app.route.post('/payslip/getPayslip', async function(req, cb){
 
 app.route.post('/authorizer/authorize',async function(req,cb){
     logger.info("Entered /authorizer/authorize API");
+    await locker("Authorization@"+req.query.pid);
     var secret = req.query.secret;
     var authid = req.query.aid;
     var pid=req.query.pid;
