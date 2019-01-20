@@ -29,7 +29,4 @@ app.sdb.create("count",{
 
 
 
-  app.events.on('newBlock', (block) => {
-    console.log('new block received', block.height)
-  })
 }
