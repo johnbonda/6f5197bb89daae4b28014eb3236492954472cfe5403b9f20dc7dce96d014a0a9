@@ -38718,3 +38718,182 @@
 2019-01-20T21:38:37+0530 <debug> sequence.js:1 (Sequence.add) Main sequence in 32 func 
 2019-01-20T21:38:37+0530 <debug> sequence.js:1 (i) Main sequence out 32 func 
 2019-01-20T21:38:37+0530 <error> sync.js:1 (Immediate.<anonymous>) Sync#transactionsSync timer No peers in db
+2019-01-20T21:38:47+0530 <debug> sequence.js:1 (Sequence.add) Main sequence in 33 func 
+2019-01-20T21:38:47+0530 <info> sync.js:1 (Immediate.<anonymous>) get main block height { height: 6614 }
+2019-01-20T21:38:47+0530 <debug> sequence.js:1 (i) Main sequence out 33 func 
+2019-01-20T21:38:47+0530 <debug> sequence.js:1 (Sequence.add) Main sequence in 34 func 
+2019-01-20T21:38:47+0530 <error> sync.js:1 (Immediate.<anonymous>) Sync#blockSync timer Failed to get blocks height: No peers in db
+2019-01-20T21:38:47+0530 <debug> sequence.js:1 (i) Main sequence out 34 func 
+2019-01-20T21:38:47+0530 <error> sync.js:1 (Immediate.<anonymous>) Sync#transactionsSync timer No peers in db
+2019-01-20T21:38:50+0530 <debug> blocks.js:742 (Function.Blocks.onMessage) Blocks#onMessage last block = {"delegate":"db18d5799944030f76b6ce0879b1ca4b0c2c1cee51f53ce9b43f78259950c2fd","height":98,"prevBlockId":"1e0e5cc06e39c45fb013957ee41b50f60faf1b12ca89efd368036aacd6270874","pointId":"257c059dc22323335e44b9ca3b4979e0df8da4a8f050d95f405a842fb9700b44","timestamp":80942910,"pointHeight":6614,"count":0,"transactions":[],"payloadHash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","payloadLength":0,"signature":"85473d9cb34231b794af642ec5419caf3a5201760e0e224b123ed2d6c2d0f72a7472c3b93fb31a3c623286ceab6393d91848bf52144fe92dd3ad4ea1864dc10f","id":"f0e73770b747218647e78e7cce10c3d32626046af90e65b3452e66894dc42814"}, event = {"topic":"point","message":{"id":"21bbb2658f441e366175e3005ec233ee61c9d08419604b02f484c666b7754ea8","height":6615}}
+2019-01-20T21:38:50+0530 <debug> sequence.js:1 (Sequence.add) Main sequence in 35 func 
+2019-01-20T21:38:50+0530 <trace> round.js:89 (Object.<anonymous>) enter balanceSync ------------------------
+2019-01-20T21:38:50+0530 <debug> orm.js:1 (e.<anonymous>) Model#findAll select "transactions"."args" from "transactions" where "transactions"."type" = 1 and "transactions"."_deleted_" = 0 order by "transactions"."height" desc limit 1;
+2019-01-20T21:38:50+0530 <debug> round.js:100 (Object.<anonymous>) balanceSync found deposit transactions: []
+2019-01-20T21:38:50+0530 <debug> round.js:185 (Object.<anonymous>) get last withdrawal id {}
+2019-01-20T21:38:50+0530 <debug> orm.js:1 (e.<anonymous>) Model#findAll select "transactions"."id", "transactions"."senderPublicKey", "transactions"."height", "transactions"."args" from "transactions" where "transactions"."height" > 0 and "transactions"."type" = 2 and "transactions"."_deleted_" = 0 order by "transactions"."height" asc;
+2019-01-20T21:38:50+0530 <debug> round.js:211 (Object.<anonymous>) found inner withdrawal transactions []
+2019-01-20T21:38:50+0530 <info> blocks.js:486 (Blocks.<anonymous>) Get active delegate keypairs len: 5
+2019-01-20T21:38:50+0530 <debug> blocks.js:276 (Blocks.<anonymous>) processBlock block and options { delegate: 'bfe511158d674c3a1e21111223a49770bee93611d998e88a5d2ea3145de2b68b',
+  height: 99,
+  prevBlockId: 'f0e73770b747218647e78e7cce10c3d32626046af90e65b3452e66894dc42814',
+  pointId: '21bbb2658f441e366175e3005ec233ee61c9d08419604b02f484c666b7754ea8',
+  timestamp: 80942925,
+  pointHeight: 6615,
+  count: 0,
+  transactions: [],
+  payloadHash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+  payloadLength: 0,
+  signature: '832db32a0307364b141c58c1c9c89bc54e19abc6d744e72884baf0953c5dbd2345a7fca4442142faed8fc763a766cbf4b7ef9d626a13936cac60b75d901f0501',
+  id: '00eeb18e748776da4336eeba07c379e6185542f275dde943208b46fb8a00fea5' } { local: true,
+  broadcast: true,
+  votes: 
+   { height: 99,
+     id: '00eeb18e748776da4336eeba07c379e6185542f275dde943208b46fb8a00fea5',
+     signatures: [ [Object], [Object], [Object], [Object], [Object] ] } }
+2019-01-20T21:38:50+0530 <trace> blocks.js:412 (Blocks.saveBlock) Blocks#save height 99
+2019-01-20T21:38:50+0530 <trace> blocks.js:418 (Blocks.saveBlock) Blocks#save end
+2019-01-20T21:38:50+0530 <trace> smartdb.js:1 (e.<anonymous>) enter commitBlock
+2019-01-20T21:38:50+0530 <debug> smartdb.js:1 (e.<anonymous>) sql batchs size 1
+2019-01-20T21:38:50+0530 <debug> smartdb.js:1 (e.<anonymous>) execute sql: insert into "blocks" ("delegate", "height", "prevBlockId", "pointId", "timestamp", "pointHeight", "count", "payloadHash", "payloadLength", "signature", "id") values ('bfe511158d674c3a1e21111223a49770bee93611d998e88a5d2ea3145de2b68b', 99, 'f0e73770b747218647e78e7cce10c3d32626046af90e65b3452e66894dc42814', '21bbb2658f441e366175e3005ec233ee61c9d08419604b02f484c666b7754ea8', 80942925, 6615, 0, 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', 0, '832db32a0307364b141c58c1c9c89bc54e19abc6d744e72884baf0953c5dbd2345a7fca4442142faed8fc763a766cbf4b7ef9d626a13936cac60b75d901f0501', '00eeb18e748776da4336eeba07c379e6185542f275dde943208b46fb8a00fea5');
+2019-01-20T21:38:50+0530 <trace> smartdb.js:1 (e.<anonymous>) after commit transaction
+2019-01-20T21:38:50+0530 <info> blocks.js:334 (Blocks.<anonymous>) Block applied correctly with 0 transactions
+2019-01-20T21:38:50+0530 <trace> blocks.js:386 (Blocks.setLastBlock) Blocks#setLastBlock { delegate: 'bfe511158d674c3a1e21111223a49770bee93611d998e88a5d2ea3145de2b68b',
+  height: 99,
+  prevBlockId: 'f0e73770b747218647e78e7cce10c3d32626046af90e65b3452e66894dc42814',
+  pointId: '21bbb2658f441e366175e3005ec233ee61c9d08419604b02f484c666b7754ea8',
+  timestamp: 80942925,
+  pointHeight: 6615,
+  count: 0,
+  transactions: [],
+  payloadHash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+  payloadLength: 0,
+  signature: '832db32a0307364b141c58c1c9c89bc54e19abc6d744e72884baf0953c5dbd2345a7fca4442142faed8fc763a766cbf4b7ef9d626a13936cac60b75d901f0501',
+  id: '00eeb18e748776da4336eeba07c379e6185542f275dde943208b46fb8a00fea5' }
+2019-01-20T21:38:50+0530 <info> blocks.js:496 (Blocks.<anonymous>) Forged new block id: 00eeb18e748776da4336eeba07c379e6185542f275dde943208b46fb8a00fea5 height: 99
+2019-01-20T21:38:50+0530 <info> round.js:66 () New dapp block id: 00eeb18e748776da4336eeba07c379e6185542f275dde943208b46fb8a00fea5 height: 99 via point: 6615
+2019-01-20T21:38:50+0530 <debug> sequence.js:1 (i) Main sequence out 35 func 
+2019-01-20T21:38:57+0530 <debug> sequence.js:1 (Sequence.add) Main sequence in 36 func 
+2019-01-20T21:38:57+0530 <info> sync.js:1 (Immediate.<anonymous>) get main block height { height: 6615 }
+2019-01-20T21:38:57+0530 <debug> sequence.js:1 (i) Main sequence out 36 func 
+2019-01-20T21:38:57+0530 <error> sync.js:1 (Immediate.<anonymous>) Sync#blockSync timer Failed to get blocks height: No peers in db
+2019-01-20T21:38:57+0530 <debug> sequence.js:1 (Sequence.add) Main sequence in 37 func 
+2019-01-20T21:38:57+0530 <debug> sequence.js:1 (i) Main sequence out 37 func 
+2019-01-20T21:38:57+0530 <error> sync.js:1 (Immediate.<anonymous>) Sync#transactionsSync timer No peers in db
+2019-01-20T21:39:00+0530 <debug> blocks.js:742 (Function.Blocks.onMessage) Blocks#onMessage last block = {"delegate":"bfe511158d674c3a1e21111223a49770bee93611d998e88a5d2ea3145de2b68b","height":99,"prevBlockId":"f0e73770b747218647e78e7cce10c3d32626046af90e65b3452e66894dc42814","pointId":"21bbb2658f441e366175e3005ec233ee61c9d08419604b02f484c666b7754ea8","timestamp":80942925,"pointHeight":6615,"count":0,"transactions":[],"payloadHash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","payloadLength":0,"signature":"832db32a0307364b141c58c1c9c89bc54e19abc6d744e72884baf0953c5dbd2345a7fca4442142faed8fc763a766cbf4b7ef9d626a13936cac60b75d901f0501","id":"00eeb18e748776da4336eeba07c379e6185542f275dde943208b46fb8a00fea5"}, event = {"topic":"point","message":{"id":"ed5bc2c90da566aa954b5b27f97e8fe7221055cab04de85aaf9fadad18efa8a9","height":6616}}
+2019-01-20T21:39:00+0530 <debug> sequence.js:1 (Sequence.add) Main sequence in 38 func 
+2019-01-20T21:39:00+0530 <trace> round.js:89 (Object.<anonymous>) enter balanceSync ------------------------
+2019-01-20T21:39:00+0530 <debug> orm.js:1 (e.<anonymous>) Model#findAll select "transactions"."args" from "transactions" where "transactions"."type" = 1 and "transactions"."_deleted_" = 0 order by "transactions"."height" desc limit 1;
+2019-01-20T21:39:00+0530 <debug> round.js:100 (Object.<anonymous>) balanceSync found deposit transactions: []
+2019-01-20T21:39:00+0530 <debug> round.js:185 (Object.<anonymous>) get last withdrawal id {}
+2019-01-20T21:39:00+0530 <debug> orm.js:1 (e.<anonymous>) Model#findAll select "transactions"."id", "transactions"."senderPublicKey", "transactions"."height", "transactions"."args" from "transactions" where "transactions"."height" > 0 and "transactions"."type" = 2 and "transactions"."_deleted_" = 0 order by "transactions"."height" asc;
+2019-01-20T21:39:00+0530 <debug> round.js:211 (Object.<anonymous>) found inner withdrawal transactions []
+2019-01-20T21:39:00+0530 <info> blocks.js:486 (Blocks.<anonymous>) Get active delegate keypairs len: 5
+2019-01-20T21:39:00+0530 <debug> blocks.js:276 (Blocks.<anonymous>) processBlock block and options { delegate: '7bbf62931cf3c596591a580212631aff51d6bc0577c54769953caadb23f6ab00',
+  height: 100,
+  prevBlockId: '00eeb18e748776da4336eeba07c379e6185542f275dde943208b46fb8a00fea5',
+  pointId: 'ed5bc2c90da566aa954b5b27f97e8fe7221055cab04de85aaf9fadad18efa8a9',
+  timestamp: 80942940,
+  pointHeight: 6616,
+  count: 0,
+  transactions: [],
+  payloadHash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+  payloadLength: 0,
+  signature: '9d62bd80f67d7ecd6b848c965456c79dd414a4f021193e3a369afe9f27c1867e5645f33781a779d294e7a27a4a5f0710a40baa4f51f43e1411e032f5187af408',
+  id: '1993107de6b12e807ca80cdbbe12b7135e7950ddc28f3a8eaf37174adb5a866b' } { local: true,
+  broadcast: true,
+  votes: 
+   { height: 100,
+     id: '1993107de6b12e807ca80cdbbe12b7135e7950ddc28f3a8eaf37174adb5a866b',
+     signatures: [ [Object], [Object], [Object], [Object], [Object] ] } }
+2019-01-20T21:39:00+0530 <trace> blocks.js:412 (Blocks.saveBlock) Blocks#save height 100
+2019-01-20T21:39:00+0530 <trace> blocks.js:418 (Blocks.saveBlock) Blocks#save end
+2019-01-20T21:39:00+0530 <debug> blocks.js:363 (Blocks.<anonymous>) ----------------------on round end-----------------------
+2019-01-20T21:39:00+0530 <debug> blocks.js:363 (Blocks.<anonymous>) app.delegate.length 5
+2019-01-20T21:39:00+0530 <debug> fee-pool.js:1 (e.value) fee pool get fees MapIterator {
+  [ 'round:5,currency:BEL',
+  { round: 5, currency: 'BEL', amount: '0' } ] } 20
+2019-01-20T21:39:00+0530 <debug> blocks.js:363 (Blocks.<anonymous>) round fees Map { _c: Map {} }
+2019-01-20T21:39:00+0530 <debug> blocks.js:368 (Blocks.<anonymous>) fees distributes Map { _c: Map {} } Map { _c: Map {} }
+2019-01-20T21:39:00+0530 <trace> smartdb.js:1 (e.<anonymous>) enter commitBlock
+2019-01-20T21:39:00+0530 <debug> smartdb.js:1 (e.<anonymous>) sql batchs size 1
+2019-01-20T21:39:00+0530 <debug> smartdb.js:1 (e.<anonymous>) execute sql: insert into "blocks" ("delegate", "height", "prevBlockId", "pointId", "timestamp", "pointHeight", "count", "payloadHash", "payloadLength", "signature", "id") values ('7bbf62931cf3c596591a580212631aff51d6bc0577c54769953caadb23f6ab00', 100, '00eeb18e748776da4336eeba07c379e6185542f275dde943208b46fb8a00fea5', 'ed5bc2c90da566aa954b5b27f97e8fe7221055cab04de85aaf9fadad18efa8a9', 80942940, 6616, 0, 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', 0, '9d62bd80f67d7ecd6b848c965456c79dd414a4f021193e3a369afe9f27c1867e5645f33781a779d294e7a27a4a5f0710a40baa4f51f43e1411e032f5187af408', '1993107de6b12e807ca80cdbbe12b7135e7950ddc28f3a8eaf37174adb5a866b');
+2019-01-20T21:39:00+0530 <trace> smartdb.js:1 (e.<anonymous>) after commit transaction
+2019-01-20T21:39:00+0530 <info> blocks.js:334 (Blocks.<anonymous>) Block applied correctly with 0 transactions
+2019-01-20T21:39:00+0530 <trace> blocks.js:386 (Blocks.setLastBlock) Blocks#setLastBlock { delegate: '7bbf62931cf3c596591a580212631aff51d6bc0577c54769953caadb23f6ab00',
+  height: 100,
+  prevBlockId: '00eeb18e748776da4336eeba07c379e6185542f275dde943208b46fb8a00fea5',
+  pointId: 'ed5bc2c90da566aa954b5b27f97e8fe7221055cab04de85aaf9fadad18efa8a9',
+  timestamp: 80942940,
+  pointHeight: 6616,
+  count: 0,
+  transactions: [],
+  payloadHash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+  payloadLength: 0,
+  signature: '9d62bd80f67d7ecd6b848c965456c79dd414a4f021193e3a369afe9f27c1867e5645f33781a779d294e7a27a4a5f0710a40baa4f51f43e1411e032f5187af408',
+  id: '1993107de6b12e807ca80cdbbe12b7135e7950ddc28f3a8eaf37174adb5a866b' }
+2019-01-20T21:39:00+0530 <info> blocks.js:496 (Blocks.<anonymous>) Forged new block id: 1993107de6b12e807ca80cdbbe12b7135e7950ddc28f3a8eaf37174adb5a866b height: 100
+2019-01-20T21:39:00+0530 <info> round.js:66 () New dapp block id: 1993107de6b12e807ca80cdbbe12b7135e7950ddc28f3a8eaf37174adb5a866b height: 100 via point: 6616
+2019-01-20T21:39:00+0530 <debug> sequence.js:1 (i) Main sequence out 38 func 
+2019-01-20T21:39:07+0530 <debug> sequence.js:1 (Sequence.add) Main sequence in 39 func 
+2019-01-20T21:39:07+0530 <info> sync.js:1 (Immediate.<anonymous>) get main block height { height: 6616 }
+2019-01-20T21:39:07+0530 <debug> sequence.js:1 (i) Main sequence out 39 func 
+2019-01-20T21:39:07+0530 <error> sync.js:1 (Immediate.<anonymous>) Sync#blockSync timer Failed to get blocks height: No peers in db
+2019-01-20T21:39:07+0530 <debug> sequence.js:1 (Sequence.add) Main sequence in 40 func 
+2019-01-20T21:39:07+0530 <debug> sequence.js:1 (i) Main sequence out 40 func 
+2019-01-20T21:39:07+0530 <error> sync.js:1 (Immediate.<anonymous>) Sync#transactionsSync timer No peers in db
+2019-01-20T21:39:17+0530 <debug> sequence.js:1 (Sequence.add) Main sequence in 41 func 
+2019-01-20T21:39:17+0530 <info> sync.js:1 (Immediate.<anonymous>) get main block height { height: 6616 }
+2019-01-20T21:39:17+0530 <debug> sequence.js:1 (i) Main sequence out 41 func 
+2019-01-20T21:39:17+0530 <debug> sequence.js:1 (Sequence.add) Main sequence in 42 func 
+2019-01-20T21:39:17+0530 <error> sync.js:1 (Immediate.<anonymous>) Sync#blockSync timer Failed to get blocks height: No peers in db
+2019-01-20T21:39:17+0530 <debug> sequence.js:1 (i) Main sequence out 42 func 
+2019-01-20T21:39:17+0530 <error> sync.js:1 (Immediate.<anonymous>) Sync#transactionsSync timer No peers in db
+2019-01-20T21:39:20+0530 <debug> blocks.js:742 (Function.Blocks.onMessage) Blocks#onMessage last block = {"delegate":"7bbf62931cf3c596591a580212631aff51d6bc0577c54769953caadb23f6ab00","height":100,"prevBlockId":"00eeb18e748776da4336eeba07c379e6185542f275dde943208b46fb8a00fea5","pointId":"ed5bc2c90da566aa954b5b27f97e8fe7221055cab04de85aaf9fadad18efa8a9","timestamp":80942940,"pointHeight":6616,"count":0,"transactions":[],"payloadHash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","payloadLength":0,"signature":"9d62bd80f67d7ecd6b848c965456c79dd414a4f021193e3a369afe9f27c1867e5645f33781a779d294e7a27a4a5f0710a40baa4f51f43e1411e032f5187af408","id":"1993107de6b12e807ca80cdbbe12b7135e7950ddc28f3a8eaf37174adb5a866b"}, event = {"topic":"point","message":{"id":"a2987ed9ef58e887e0f1b36e3b810f28ce952bd5f0ca4fea8de151f4a7ee99a1","height":6617}}
+2019-01-20T21:39:20+0530 <debug> sequence.js:1 (Sequence.add) Main sequence in 43 func 
+2019-01-20T21:39:20+0530 <trace> round.js:89 (Object.<anonymous>) enter balanceSync ------------------------
+2019-01-20T21:39:20+0530 <debug> orm.js:1 (e.<anonymous>) Model#findAll select "transactions"."args" from "transactions" where "transactions"."type" = 1 and "transactions"."_deleted_" = 0 order by "transactions"."height" desc limit 1;
+2019-01-20T21:39:20+0530 <debug> round.js:100 (Object.<anonymous>) balanceSync found deposit transactions: []
+2019-01-20T21:39:20+0530 <debug> round.js:185 (Object.<anonymous>) get last withdrawal id {}
+2019-01-20T21:39:20+0530 <debug> orm.js:1 (e.<anonymous>) Model#findAll select "transactions"."id", "transactions"."senderPublicKey", "transactions"."height", "transactions"."args" from "transactions" where "transactions"."height" > 0 and "transactions"."type" = 2 and "transactions"."_deleted_" = 0 order by "transactions"."height" asc;
+2019-01-20T21:39:20+0530 <debug> round.js:211 (Object.<anonymous>) found inner withdrawal transactions []
+2019-01-20T21:39:20+0530 <info> blocks.js:486 (Blocks.<anonymous>) Get active delegate keypairs len: 5
+2019-01-20T21:39:20+0530 <debug> blocks.js:276 (Blocks.<anonymous>) processBlock block and options { delegate: '452df9213aedb3b9fed6db3e2ea9f49d3db226e2dac01828bc3dcd73b7a953b4',
+  height: 101,
+  prevBlockId: '1993107de6b12e807ca80cdbbe12b7135e7950ddc28f3a8eaf37174adb5a866b',
+  pointId: 'a2987ed9ef58e887e0f1b36e3b810f28ce952bd5f0ca4fea8de151f4a7ee99a1',
+  timestamp: 80942955,
+  pointHeight: 6617,
+  count: 0,
+  transactions: [],
+  payloadHash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+  payloadLength: 0,
+  signature: 'b402172f489c2a0970151876b9fd91770dea4b913d66ec66e7239df18914e6bdb15097ce53225f78a99ff83703fa5cdbdcf5b7de79d4c7d8cfb2820d51b1f201',
+  id: '5f2d7e5fd5432090bf2acc45fc28eca3e957271479953537ee9aebdcf76ce134' } { local: true,
+  broadcast: true,
+  votes: 
+   { height: 101,
+     id: '5f2d7e5fd5432090bf2acc45fc28eca3e957271479953537ee9aebdcf76ce134',
+     signatures: [ [Object], [Object], [Object], [Object], [Object] ] } }
+2019-01-20T21:39:20+0530 <trace> blocks.js:412 (Blocks.saveBlock) Blocks#save height 101
+2019-01-20T21:39:20+0530 <trace> blocks.js:418 (Blocks.saveBlock) Blocks#save end
+2019-01-20T21:39:20+0530 <trace> smartdb.js:1 (e.<anonymous>) enter commitBlock
+2019-01-20T21:39:20+0530 <debug> smartdb.js:1 (e.<anonymous>) sql batchs size 1
+2019-01-20T21:39:20+0530 <debug> smartdb.js:1 (e.<anonymous>) execute sql: insert into "blocks" ("delegate", "height", "prevBlockId", "pointId", "timestamp", "pointHeight", "count", "payloadHash", "payloadLength", "signature", "id") values ('452df9213aedb3b9fed6db3e2ea9f49d3db226e2dac01828bc3dcd73b7a953b4', 101, '1993107de6b12e807ca80cdbbe12b7135e7950ddc28f3a8eaf37174adb5a866b', 'a2987ed9ef58e887e0f1b36e3b810f28ce952bd5f0ca4fea8de151f4a7ee99a1', 80942955, 6617, 0, 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', 0, 'b402172f489c2a0970151876b9fd91770dea4b913d66ec66e7239df18914e6bdb15097ce53225f78a99ff83703fa5cdbdcf5b7de79d4c7d8cfb2820d51b1f201', '5f2d7e5fd5432090bf2acc45fc28eca3e957271479953537ee9aebdcf76ce134');
+2019-01-20T21:39:20+0530 <trace> smartdb.js:1 (e.<anonymous>) after commit transaction
+2019-01-20T21:39:20+0530 <info> blocks.js:334 (Blocks.<anonymous>) Block applied correctly with 0 transactions
+2019-01-20T21:39:20+0530 <trace> blocks.js:386 (Blocks.setLastBlock) Blocks#setLastBlock { delegate: '452df9213aedb3b9fed6db3e2ea9f49d3db226e2dac01828bc3dcd73b7a953b4',
+  height: 101,
+  prevBlockId: '1993107de6b12e807ca80cdbbe12b7135e7950ddc28f3a8eaf37174adb5a866b',
+  pointId: 'a2987ed9ef58e887e0f1b36e3b810f28ce952bd5f0ca4fea8de151f4a7ee99a1',
+  timestamp: 80942955,
+  pointHeight: 6617,
+  count: 0,
+  transactions: [],
+  payloadHash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+  payloadLength: 0,
+  signature: 'b402172f489c2a0970151876b9fd91770dea4b913d66ec66e7239df18914e6bdb15097ce53225f78a99ff83703fa5cdbdcf5b7de79d4c7d8cfb2820d51b1f201',
+  id: '5f2d7e5fd5432090bf2acc45fc28eca3e957271479953537ee9aebdcf76ce134' }
+2019-01-20T21:39:20+0530 <info> blocks.js:496 (Blocks.<anonymous>) Forged new block id: 5f2d7e5fd5432090bf2acc45fc28eca3e957271479953537ee9aebdcf76ce134 height: 101
+2019-01-20T21:39:20+0530 <info> round.js:66 () New dapp block id: 5f2d7e5fd5432090bf2acc45fc28eca3e957271479953537ee9aebdcf76ce134 height: 101 via point: 6617
+2019-01-20T21:39:20+0530 <debug> sequence.js:1 (i) Main sequence out 43 func 
