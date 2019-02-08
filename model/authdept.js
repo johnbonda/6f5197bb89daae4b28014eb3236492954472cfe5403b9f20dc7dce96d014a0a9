@@ -7,9 +7,14 @@ module.exports = {
             length: 255
         },
         {
-            name: 'deplevelid',
+            name: 'dlid',
             type: 'String',
             length: 255,
+        },
+        {
+            name: 'deleted',
+            type: 'String', 
+            length: 255
         }
     ]
 }

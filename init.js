@@ -19,14 +19,5 @@ module.exports = async function () {
   app.registerFee(1008, '0', 'BEL')
   app.registerFee(1009, '0', 'BEL')
   app.registerFee(1010, '0', 'BEL')
-app.sdb.create("count",{
-  id:0,
-  pid:0,
-  aid:0,
-  iid:0,
-  empid:0
-});
-
-
 
 }

@@ -17,6 +17,17 @@ app.route.post('/issuers', async function(req, cb){
         limit: req.query.limit,
         offset: req.query.offset
     });
+    for(i in result){
+        var employeeCount = await app.model.Employee.count({
+            iid: result[i].iid
+        })
+        var issuedCount = await app.model.Issue.count({
+            iid: result[i].iid,
+            status: 'issued'
+        });
+        result[i].employeesRegistered = employeeCount;
+        result[i].issuesCount = issuedCount;
+    }
     return {
         total: total,
         issuers: result
@@ -47,11 +58,22 @@ app.route.post('/authorizers', async function(req, cb){
         limit: req.query.limit,
         offset: req.query.offset
     });
+    for(i in result){
+        var signedCount = await app.model.Cs.count({
+            aid: result[i].aid
+        });
+        var rejectedCount = await app.model.Rejected.count({
+            aid: result[i].aid
+        });
+        
+        result[i].signedCount = signedCount;
+        result[i].rejectedCount = rejectedCount;
+    }
     return {
         total: total,
         authorizer: result
     }; 
-});
+}); 
 
 app.route.post('/authorizers/data', async function(req, cb){
     logger.info("Entered /authoirzers/data");
@@ -146,59 +168,79 @@ app.route.post('/authorizers/remove', async function(req, cb){
         err: removeInSuperDapp,
         isSuccess: false
     }
-    
-    var priority = await app.model.Deplevel.findOne({
+
+    var authdepts = await app.model.Authdept.findAll({
         condition: {
-            department: check.department,
-            designation: check.designation
+            aid: req.query.aid
         }
     });
 
-    var pendingPayslips = await app.model.Issue.findAll({
-        condition: {
-            status: 'pending',
-            authLevel: priority.priority
+    for(let i in authdepts){
+        var notTheOnlyAuthorizer = await app.model.Authdepts.exists({
+            dlid: authdepts[i].dlid,
+            aid: {
+                $ne: req.query.aid
+            },
+            deleted: '0'
+        });
+
+        if(notTheOnlyAuthorizer) continue;
+
+        var deplevel = await app.model.Deplevel.findOne({
+            condition: {
+                dlid: authdepts[i].dlid
+            }
+        });
+
+        var pendingPayslips = await app.model.Issue.findAll({
+            condition: {
+                status: 'pending',
+                did: deplevel.did,
+                authLevel: deplevel.level
+            },
+            fields: ['pid']
+        });
+
+        var pendingPids = []
+        for(let j in pendingPayslips){
+            pendingPids.push(pendingPayslips[j].pid);
         }
-    });
 
-    var authCount = await app.model.Authorizer.count({
-        department: check.department,
-        designation: check.designation,
-        deleted: '0'
-    });
+        var level = deplevel.level + 1;
 
-    for(i in pendingPayslips){
-        if(pendingPayslips[i].count === authCount - 1){
-            var level = priority.priority + 1;
-            while(1){
-                var designation = await app.model.Deplevel.findOne({
-                    condition: {
-                        department: check.department,
-                        priority: level
+        while(1){
+            let nextDepLevel = await app.model.Deplevel.findOne({
+                condition: {
+                    did: deplevel.did,
+                    level: level
+                }
+            });
+            if(!nextDepLevel){
+                app.sdb.update('issue', {status: 'authorized'}, {
+                    pid: {
+                        $in: pendingPids
                     }
                 });
-                if(!designation){
-                    app.sdb.update('issue', {status: 'authorized'}, {pid: pendingPayslips[i].pid});
-                    level--;
-                    break;
-                }
-                var authLevelCount = await app.model.Authorizer.count({
-                    department: check.department,
-                    designation: designation.designation,
-                    deleted: '0'
-                });
-        
-                if(authLevelCount) {
-                    break;
-                }
-
-                level++;
+                level--;
+                break;
             }
-            app.sdb.update('issue', {authLevel: level}, {pid: pendingPayslips[i].pid});
-            app.sdb.update('issue', {count: 0}, {pid: pendingPayslips[i].pid})
+            var authLevelCount = await app.model.Authdept.count({
+                dlid: nextDepLevel.dlid
+            });
+
+            if(authLevelCount) break;
+
+            level++;
         }
+
+        app.sdb.update('issue', {authLevel: level}, {
+            pid: {
+                $in: pendingPids
+            }
+        });
     }
 
+    app.sdb.update('authdept', {deleted: '1'}, {aid: check.aid});
     app.sdb.update('authorizer', {deleted: '1'}, {aid: check.aid});
 
     var activityMessage = "Authorizer " + check.email + " has been removed.";
@@ -208,6 +250,8 @@ app.route.post('/authorizers/remove', async function(req, cb){
         timestampp: new Date().getTime(),
         atype: 'authorizer'
     });
+
+    await locker("/authorizers/remove");
 
     return {
         isSuccess: true
@@ -240,6 +284,8 @@ app.route.post('/issuers/remove', async function(req, cb){
         err: removeInSuperDapp,
         isSuccess: false
     }
+
+    app.sdb.update('issudepts', {deleted: '1'}, {iid: check.iid});
     
     app.sdb.update('issuer', {deleted: '1'}, {iid: check.iid});
 
@@ -251,6 +297,8 @@ app.route.post('/issuers/remove', async function(req, cb){
         atype: 'issuer'
     });
 
+    await locker("/issuers/remove");
+
     return {
         isSuccess: true
     };
@@ -260,15 +308,19 @@ app.route.post('/department/define', async function(req, cb){
     await locker('/department/define');
     var departments = req.query.departments;
     for(let i in departments){
-        for(let j in departments[i].levels){
+        for(let j = 0; j < departments[i].levels; j++){
+            app.sdb.create('department', {
+                did: app.autoID.increment('department_max_did'),
+                name: departments[i].name
+            });
             app.sdb.create('deplevel', {
                 id: app.autoID.increment('deplevel_max_id'),
-                department: departments[i].name,
-                designation: departments[i].levels[j],
-                priority: j
+                did: app.autoID.get('department_max_did'),
+                level: j,
             });
         }
     }
+    await locker('/department/define');
     return {
         isSuccess: true
     }
@@ -292,6 +344,7 @@ app.route.post('/department/add', async function(req, cb){
             priority: i
         });
     }
+    await locker('/department/add');
     return {
         isSuccess: true
     }
@@ -333,76 +386,6 @@ app.route.post('/department/get', async function(req, cb){
     }
 })
 
-app.route.post('/category/define', async function(req, cb){
-    await locker('/category/define');
-    var defined = await app.model.Category.findAll({});
-    if(defined.length) return {
-        message: 'Categories already defined',
-        isSuccess: false
-    }
-    var timestamp = new Date().getTime().toString();
-    for(i in req.query.categories){
-        app.sdb.create('category', {
-            name: req.query.categories[i],
-            deleted: '0',
-            timestampp: timestamp
-        })
-    };
-    return {
-        isSuccess: true
-    }
-})
-
-app.route.post('/category/add', async function(req, cb){
-    await locker('/category/add');
-    var exists = await app.model.Category.exists({
-        name: req.query.name,
-        deleted: '0'
-    });
-    if(exists) return {
-        message: "The provided category already exists",
-        isSuccess: false
-    }
-    app.sdb.create('category', {
-        name: req.query.name,
-        deleted: '0',
-        timestampp: new Date().getTime().toString()
-    })
-    return {
-        isSuccess: true
-    }
-});
-
-app.route.post('/category/remove', async function(req, cb){
-    await locker('/category/remove');
-    var exists = await app.model.Category.exists({
-        name: req.query.name,
-        deleted: '0'
-    });
-    if(!exists) return {
-        message: "The provided category does not exist",
-        isSuccess: false
-    }
-    app.sdb.update('category', {deleted: '1'}, {name: req.query.name});
-    return {
-        isSuccess: true
-    }
-});
-
-app.route.post('/category/get', async function(req, cb){
-    await locker('/category/get');
-    var categories = await app.model.Category.findAll({
-        condition: {
-            deleted: '0'
-        },
-        fields: ['name', 'timestampp']
-    });
-    return {
-        categories: categories,
-        isSuccess: true
-    }
-})
-
 app.route.post('/customFields/define', async function(req, cb){
     await locker('/customFields/define');
     var setting = await app.model.Setting.findOne({
@@ -434,6 +417,7 @@ app.route.post('/customFields/define', async function(req, cb){
             identity: identity
         })
     }
+    await locker('/customFields/define');
     return {
         isSuccess: true
     }
@@ -480,7 +464,7 @@ app.route.post('/employee/remove', async function(req, cb){
         timestampp: new Date().getTime(),
         atype: 'employee'
     });
-    
+    await locker('/employee/remove');
 })
 
 app.route.post('/issuer/data', async function(req, cb){
