@@ -10,6 +10,7 @@ var mailCall = require("../utils/mailCall");
 var SwaggerCall = require("../utils/SwaggerCall");
 var logger = require("../utils/logger");
 var locker = require("../utils/locker");
+var blockWait = require("../utils/blockwait");
 
 
 
@@ -342,23 +343,17 @@ app.route.post('/payslip/initialIssue',async function(req,cb){
         transactionId: '-',
         did: department.did
     }
-    
-    var level = 0;
 
+    var level = 1;
     while(1){
-        var designation = await app.model.Deplevel.findOne({
-            condition: {
-                did: department.did,
-                level: level
-            }
-        });
-        if(!designation){
+        if(level > department.levels){
             issue.status = 'authorized',
             level--;
             break;
         }
-        var authLevelCount = await app.model.Authdepts.count({
-            dlid: designation.dlid,
+        var authLevelCount = await app.model.Authdept.count({
+            did: department.did,
+            level: level,
             deleted: '0'
         });
 
@@ -387,6 +382,9 @@ app.route.post('/payslip/initialIssue',async function(req,cb){
         atype: 'payslip'
     });
 
+    await blockWait();
+
+
     return {
         message: "Payslip initiated",
         isSuccess: true
@@ -406,7 +404,7 @@ app.route.post('/authorizers/pendingSigns',async function(req,cb){
             isSuccess: false
         }
 
-        var dlids = await app.model.Authdepts.findAll({
+        var authdepts = await app.model.Authdept.findAll({
             condition: {
                 aid: checkAuth.aid,
                 deleted: '0'
@@ -415,39 +413,34 @@ app.route.post('/authorizers/pendingSigns',async function(req,cb){
 
         var pendingSignatureIssues = [];
 
-        for(let i in dlids){
-            var deplevel = await app.model.Deplevel.findOne({
-                condition: {
-                    dlid: dlids[i]
-                }
-            });
-
-            var dlidIssues = await app.model.Issue.findAll({
+        for(let i in authdepts){
+            var issues = await app.model.Issue.findAll({
                 condition: {
                     status: "pending",
-                    did: deplevel.did,
-                    authlevel: deplevel.level
+                    did: authdepts[i].did,
+                    authlevel: authdepts[i].level
                 }
             });
 
-            for(let j in dlidIssues){
+            for(let j in issues){
                 var signed = await app.model.Cs.exists({
                     aid: checkAuth.aid,
-                    pid: dlidIssues[j].pid
+                    pid: issues[j].pid
                 });
                 if(!signed){
                     var payslip = await app.model.Payslip.findOne({
                         condition: {
-                            pid: dlidIssues[j].pid
+                            pid: issues[j].pid
                         }
                     });
-                    dlidIssues[j].email = payslip.email;
-                    var totalLevels = await app.model.Deplevel.count({
-                        did: dlidIssues[j].did
+                    issues[j].email = payslip.email;
+                    var totalLevels = await app.model.Department.findOne({
+                        condition: {
+                            did: issues[j].did
+                        }
                     });
-                    dlidIssues[j].authLevel = Number(dlidIssues[j].authLevel) + 1;
-                    dlidIssues[j].totalLevels = totalLevels;
-                    pendingSignatureIssues.push(dlidIssues[j]);
+                    issues[j].totalLevels = totalLevels.levels;
+                    pendingSignatureIssues.push(issues[j]);
                 }
             }
         }
@@ -514,17 +507,11 @@ app.route.post('/authorizer/authorize',async function(req,cb){
             isSuccess: false
         }
 
-        var deplevel = await app.model.Deplevel.findOne({
-            condition: {
-                did: issue.did,
-                level: issue.authLevel
-            }
-        });
-
         var authdept = await app.model.Authdept.findOne({
             condition: {
                 aid: authid,
-                dlid: deplevel.dlid
+                did: issue.did,
+                level: issue.authLevel
             }
         });
         if(!authdept) return {
@@ -587,22 +574,22 @@ app.route.post('/authorizer/authorize',async function(req,cb){
             deleted: '0'
         });
 
-        level = issue.authLevel + 1;
+        var department = await app.model.Department.findOne({
+            condition: {
+                did: issue.did
+            }
+        });
 
+        let level = issue.authLevel + 1;
         while(1){
-            var deplevel = await app.model.Deplevel.findOne({
-                condition: {
-                    did: issue.did,
-                    level: level
-                }
-            });
-            if(!deplevel){
+            if(level > department.levels){
                 app.sdb.update('issue', {status: 'authorized'}, {pid: issue.pid});
                 level--;
                 break;
             }
             var authLevelCount = await app.model.Authdept.count({
-                dlid: deplevel.dlid,
+                did: issue.did,
+                level: level,
                 deleted: '0'
             });
     
@@ -622,7 +609,7 @@ app.route.post('/authorizer/authorize',async function(req,cb){
             atype: 'payslip'
         });
 
-        await locker("Authorization@"+req.query.pid);
+        await blockWait();
 
         return {
             message: "Successfully Authorized",
@@ -632,6 +619,8 @@ app.route.post('/authorizer/authorize',async function(req,cb){
 
 app.route.post('/authorizer/reject',async function(req,cb){
     logger.info("Entered /authorizer/reject API");
+    await locker('/authorizer/reject');
+
     var payslip = await app.model.Payslip.findOne({
         condition: {
             pid: req.query.pid
@@ -696,6 +685,9 @@ app.route.post('/authorizer/reject',async function(req,cb){
         atype: 'payslip'
     });
 
+    await blockWait();
+
+
 });
 
 app.route.post('/searchEmployee', async function(req, cb){
@@ -748,6 +740,7 @@ app.route.post("/sharePayslips", async function(req, cb){
 
 app.route.post("/registerEmployee", async function(req, cb){
     await locker("/registerEmployee");
+
     logger.info("Entered /registerEmployee API");
 
     var countryCode = req.query.countryCode;
@@ -794,7 +787,7 @@ app.route.post("/registerEmployee", async function(req, cb){
         message: "Invalid department"
     }
 
-    var issuerDepartment = await app.model.IssuDepts.findOne({
+    var issuerDepartment = await app.model.Issudept.findOne({
         condition: {
             iid: iid,
             did: department.did,
@@ -985,7 +978,7 @@ app.route.post("/registerEmployee", async function(req, cb){
                 }
             }
 
-            await locker("/registerEmployee");
+            await blockWait();
 
             mailCall.call("POST", "", mailBody, 0);
 
@@ -1266,6 +1259,7 @@ app.route.post('/user/sharePayslips', async function(req, cb){
 app.route.post('/registerUser/', async function(req, cb){
     await locker("registerUser@" + role);
 
+
     var email = req.query.email;
     var countryCode = req.query.countryCode;
     var countryId = req.query.countryId;
@@ -1291,18 +1285,6 @@ app.route.post('/registerUser/', async function(req, cb){
                     email: email,
                     deleted: '0'
                 });
-                var deplevel = await app.model.Deplevel.findOne({
-                    condition: {
-                        department: department,
-                        designation: req.query.designation
-                    }
-                });
-
-                if(!deplevel) return {
-                    message: "Invalid department or position",
-                    isSuccess: false
-                }
-
                 break;
 
             default: 
@@ -1321,8 +1303,10 @@ app.route.post('/registerUser/', async function(req, cb){
             }
         }
 
-        var dids = [];
-        if(role === 'authorizer') var dlids = [];
+        if(!departments) return {
+            isSuccess: false,
+            message: "Please define atleast one department for the user"
+        }
 
         for(let i in departments){
             let department = await app.model.Department.findOne({
@@ -1334,20 +1318,16 @@ app.route.post('/registerUser/', async function(req, cb){
                 isSuccess: false,
                 message: "Invalid department"
             }
-            dids.push(department.did);
-
-            if(role === 'authorizer'){
-                let deplevel = await app.model.Deplevel.findOne({
-                    condition: {
-                        did: department.did,
-                        level: departments[i].level
-                    }
-                });
-                if(!deplevel) return {
+            departments[i].did = department.did
+            if(role === 'authorizer') {
+                if(!departments[i].level) return {
                     isSuccess: false,
-                    message: "Level " + departments[i].level + " is not present in " + department.name + " department."
+                    message: "Need to provide a level for authorizer"
                 }
-                dlids.push(deplevel.dlid);
+                if(departments[i].level <= 0 || departments[i].level > department.levels) return {
+                    isSuccess: false,
+                    message: "Provide valid levels for that department"
+                }
             }
         }
 
@@ -1431,10 +1411,10 @@ app.route.post('/registerUser/', async function(req, cb){
                 logger.info("Created an issuer");
                 //Registering the issuer in the given departments
                 iid = app.autoID.get('issuer_max_iid')
-                for(let i in dids) {
+                for(let i in departments) {
                     app.sdb.create('issudept', {
                         iid: iid,
-                        did: dids[i],
+                        did: departments[i].did,
                         deleted: '0'
                     });
                 }
@@ -1451,10 +1431,11 @@ app.route.post('/registerUser/', async function(req, cb){
                 logger.info("Created an authorizer");
                 //Registering the authorizer in the given departments
                 aid = app.autoID.get('authorizer_max_aid')
-                for(let i in dlids){
+                for(let i in departments){
                     app.sdb.create('authdept', {
                         aid: aid,
-                        dlid: dlids[i],
+                        did: departments[i].did,
+                        level: departments[i].level,
                         deleted: '0'
                     });
                 }
@@ -1473,7 +1454,7 @@ app.route.post('/registerUser/', async function(req, cb){
             atype: role
         });
 
-        await locker("registerUser@" + role);
+        await blockWait();
 
         return {
             isSuccess: true
@@ -1507,6 +1488,7 @@ app.route.post('/getActivities', async function(req, cb){
 app.route.post('/payslip/payment', async function(req, cb){
     await locker("/payslip/payment@" + req.query.link)
 
+
     var paysliplink = await app.model.Paysliplink.findOne({
         condition: {
             link: req.query.link
@@ -1525,7 +1507,8 @@ app.route.post('/payslip/payment', async function(req, cb){
     app.sdb.update('paysliplink', {payed: '1'}, {link: req.query.link});
     app.sdb.update('paysliplink', {orderid: req.query.orderid}, {link: req.query.link});
 
-    await locker("/payslip/payment@" + req.query.link)
+    await blockWait();
+
     
     return {
         isSuccess: true
@@ -1581,7 +1564,7 @@ app.route.post('/generatePayslipLink', async function(req, cb){
         }
     }
 
-    await locker("generatePayslipLink@" + pid);
+    await blockWait();
 
     mailCall.call("POST", "", mailBody, 0);
 

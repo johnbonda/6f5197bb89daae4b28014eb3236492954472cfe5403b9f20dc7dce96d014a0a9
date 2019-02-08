@@ -7,8 +7,13 @@ module.exports = {
             length: 255
         },
         {
-            name: 'dlid',
+            name: 'did',
             type: 'String',
+            length: 255,
+        },
+        {
+            name: 'level',
+            type: 'Number',
             length: 255,
         },
         {

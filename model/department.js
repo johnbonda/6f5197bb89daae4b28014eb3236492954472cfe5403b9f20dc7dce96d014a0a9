@@ -11,6 +11,11 @@ module.exports = {
             name: 'name',
             type: 'String',
             length: 255,
-        }
+        },
+        {
+            name: 'levels',
+            type: 'Number', 
+            length: 255
+        }    
     ]
 }
