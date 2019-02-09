@@ -1,6 +1,7 @@
 var logger = require("../utils/logger");
 var SuperDappCall = require("../utils/SuperDappCall");
 var locker = require("../utils/locker");
+var blockWait = require("../utils/blockwait");
 
 
 

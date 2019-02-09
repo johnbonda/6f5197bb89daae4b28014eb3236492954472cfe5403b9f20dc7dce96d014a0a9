@@ -956,7 +956,7 @@ app.route.post("/registerEmployee", async function(req, cb){
             var crea = {
                 email: email,
                 empid: uuid,
-                name: name + lastName,
+                name: name + " " + lastName,
                 designation: designation,
                 bank: bank,
                 accountNumber: accountNumber,

@@ -4,6 +4,7 @@ var DappCall = require("../utils/DappCall");
 var SwaggerCall = require('../utils/SwaggerCall.js');
 var logger = require("../utils/logger");
 var locker = require("../utils/locker");
+var blockWait = require("../utils/blockwait");
 
 
 
@@ -158,6 +159,8 @@ app.route.post('/userlogin', async function (req, cb) {
         timestampp: new Date().getTime(),
         atype: 'employee'
     });
+
+    await blockWait();
 
      return {
          isSuccess: true
