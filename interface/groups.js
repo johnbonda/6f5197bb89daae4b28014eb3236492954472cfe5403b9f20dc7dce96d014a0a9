@@ -154,7 +154,7 @@ app.route.post('/authorizers/data', async function(req, cb){
             level: departments[j].level
         });
     }
-    
+
     result.department = departmentArray;
 
     return result;
@@ -279,8 +279,8 @@ app.route.post('/issuer/pendingIssues', async function(req, cb){
             fields:['pid', 'month', 'year']
         });
         if(!response){
-             result[obj].month = response.month;
-             result[obj].year = response.year;
+             result[obj].month = req.query.month;
+             result[obj].year = req.query.year;
              array.push(result[obj]);
         }
     }
@@ -299,6 +299,18 @@ app.route.post('/issuer/authorizedIssues', async function(req, cb){
         limit: req.query.limit,
         offset: req.query.offset
     })
+
+    for(i in authorizedIssues) {
+        var payslip = await app.model.Payslip.findOne({
+            condition: {
+                pid: authorizedIssues[i].pid
+            },
+            fields: ['name', 'month', 'year']
+        });
+        authorizedIssues[i].empname = payslip.name;
+        authorizedIssues[i].month = payslip.month,
+        authorizedIssues[i].year = payslip.year
+    }
 
     return {
         isSuccess: true,
@@ -1088,6 +1100,28 @@ app.route.post('/employees/getDesignations', async function(req, cb){
 
     return {
         designation: Array.from(designationSet),
+        isSuccess: true
+    }
+})
+
+app.route.post('/superuser/statistics', async function(req, cb){
+    var employeesCount = await app.model.Employee.count({
+        deleted: '0'
+    });
+    var issuersCount = await app.model.Issuer.count({
+        deleted: '0'
+    });
+    var authorizersCount = await app.model.Authorizer.count({
+        deleted: '0'
+    });
+    var payslipsCount = await app.model.Issue.count({
+        status: 'issued'
+    });
+    return {
+        employeesCount: employeesCount,
+        issuersCount: issuersCount,
+        authorizersCount: authorizersCount,
+        payslipsCount: payslipsCount,
         isSuccess: true
     }
 })
